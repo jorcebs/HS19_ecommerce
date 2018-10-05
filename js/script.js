@@ -39,7 +39,7 @@ function onIndexLoad() {
                             <h4>$${price}</h4>
                         </div>
                         <div class='card-action'>
-                            <a href='product.html?id=${id}'>Comprar</a>
+                            <a href='product.html?id=${id}'>Buy</a>
                         </div>
                     </div>
                 </div>`;
@@ -50,7 +50,7 @@ function onIndexLoad() {
             else
                 $('.product-col:eq(1)').append(html);
 
-            // Alternates next column
+            // Alternates column
             columnSwitch *= -1;
 
         }
@@ -106,7 +106,7 @@ function onProductLoad() {
             if (product.reviews.length > 0) {
 
                 // Displays review section title
-                let h4 = `<h4 class='center'>Reseñas</h4>`;
+                let h4 = `<h4 class='center'>Reviews</h4>`;
                 $('#reviews').html(h4);
 
                 // For each product review...
@@ -133,7 +133,11 @@ function onProductLoad() {
         // If product wasn't found, display error message and overrides page elements
         else {
             let html = `<div class='center container'>
-                            <h1>Product not found</h1>
+                            <h1 class='m-top'>Product not found</h1>
+                            <h4 class='m-bot'>
+                                Check our available products 
+                                <a href='index.html'>here</a>
+                            <h4/>
                         </div>`;
             $('main').html(html);
         }
@@ -169,29 +173,29 @@ function onCartLoad() {
 
                 // Creates html tags with product info
                 let html = `<tr>
-                        <td>
-                            <a href='product.html?id=${id}'>
-                                <img src='img/${id}.jpeg'>
-                            </a>
-                        </td>
-                        <td>
-                            <a href='product.html?id=${id}'>
-                                <p>${name}</p>
-                            </a>
-                        </td>
-                        <td class='quantity'>${quantity} botella(s)</td>
-                        <td class='price'>$ ${price}</td>
-                        <td>
-                            <a href='javascript:removeProduct(${id})'>
-                                <i class='black-text material-icons'>delete</i>
-                            </a>
-                        </td>
-                        <td class='p-right'>
-                            <a href='product.html?id=${id}'>
-                                <i class='black-text material-icons'>edit</i>
-                            </a>
-                        </td>
-                    </tr>`;
+                                <td>
+                                    <a href='product.html?id=${id}'>
+                                        <img src='img/${id}.jpeg'>
+                                    </a>
+                                </td>
+                                <td>
+                                    <a href='product.html?id=${id}'>
+                                        <p>${name}</p>
+                                    </a>
+                                </td>
+                                <td class='quantity'>${quantity} bottle(s)</td>
+                                <td class='price'>$ ${price}</td>
+                                <td>
+                                    <a href='product.html?id=${id}'>
+                                        <i class='black-text material-icons'>edit</i>
+                                    </a>
+                                </td>
+                                <td class='p-right'>
+                                    <a href='javascript:removeProduct(${id})'>
+                                        <i class='black-text material-icons'>delete</i>
+                                    </a>
+                                </td>
+                            </tr>`;
 
                 // Appends product to table
                 $('tbody').append(html);
@@ -201,8 +205,14 @@ function onCartLoad() {
     }
     // If there are no products in the cart
     else {
-        let html = `<div class='center container'>
-                        <h1>Cart is empty</h1>
+        let html = `<div class='center container m-top'>
+                        <h1>Your cart is empty</h1>
+                        <img src='img/empty-cart.png'/>
+                        <h4 class='m-bot'>
+                            Try adding some 
+                            <a href='index.html'>products</a>
+                            to it
+                        <h4/>
                     </div>`;
         $('main').html(html);
     }
@@ -214,8 +224,10 @@ function addProduct() {
     // Gets JSON from browser storage
     let cart = JSON.parse(window.name);
 
+    // Gets product info and creates object
     let id = $('#product-id').val();
     let quantity = $('#quantity').val();
+    let product = { "id": id, "quantity": quantity };
 
     // If the product exists in the cart already, delets the products and refreshes cart variable
     if (cart.some(item => item.id == id)) {
@@ -224,8 +236,7 @@ function addProduct() {
     }
 
     // Adds new product to cart
-    let adding = { "id": id, "quantity": quantity };
-    cart[cart.length] = adding;
+    cart[cart.length] = product;
 
     // Saves cart
     window.name = JSON.stringify(cart);
@@ -257,15 +268,19 @@ function removeProduct(id) {
 // Gets param from url
 function getParam(name) {
 
+    // Gets all url values
     let url = window.location.search.substring(1);
-    let urlVariables = url.split('&');
+    let values = url.split('&');
 
-    for (let i = 0; i < urlVariables.length; i++) {
+    // For each value in url...
+    for (let i = 0; i < values.length; i++) {
 
-        let urlParamName = urlVariables[i].split('=');
+        // Get individual value
+        let value = values[i].split('=');
 
-        if (urlParamName[0] == name)
-            return urlParamName[1];
+        // Compares param name with searched name. If it's found, returns its value
+        if (value[0] == name)
+            return value[1];
 
     }
 }
