@@ -3,11 +3,11 @@
 // JSON file url
 let jsonUrl = 'https://gist.githubusercontent.com/jorcebs/57038c193314a58260633c7cc89e5e47/raw/58f59d226441cf3545900a4d54faec78c744f053/import.json';
 
+// Initialises cart if it hasn't been set
+$(document).ready(function () { initialiseCart(); });
+
 // Executed when index.html page is ready
 function onIndexLoad() {
-
-    // Initialises window.name if it hasn't been set
-    if (!window.name) window.name = '[]';
 
     // Materialize JavaScript component initialization
     $('.parallax').parallax();
@@ -29,20 +29,20 @@ function onIndexLoad() {
 
             // Creates html tags with product info
             let html = `<div class='horizontal hoverable card'>
-                    <div class='valign-wrapper card-image'>
-                        <img src='img/${id}.jpeg'>
-                    </div>
-                    <div class='card-stacked'>
-                        <div class='card-content'>
-                            <h5>${name}</h5>
-                            <p>${description}</p>
-                            <h4>$${price}</h4>
-                        </div>
-                        <div class='card-action'>
-                            <a href='product.html?id=${id}'>Buy</a>
-                        </div>
-                    </div>
-                </div>`;
+                            <div class='valign-wrapper card-image'>
+                                <img src='img/${id}.jpeg'>
+                            </div>
+                            <div class='card-stacked'>
+                                <div class='card-content'>
+                                    <h5>${name}</h5>
+                                    <p>${description}</p>
+                                    <h4>$${price}</h4>
+                                </div>
+                                <div class='card-action'>
+                                    <a href='product.html?id=${id}'>Buy</a>
+                                </div>
+                            </div>
+                        </div>`;
 
             // Appends product to responsive columns
             if (columnSwitch > 0)
@@ -60,16 +60,13 @@ function onIndexLoad() {
 // Executed when product.html page is ready
 function onProductLoad() {
 
-    // Initialises window.name if it hasn't been set
-    if (!window.name) window.name = '[]';
-
     // Materialize JavaScript component initialization
     $('textarea').characterCounter();
 
     // Gets id from url
     let id = getParam('id');
 
-    // If product id hasn't been set, sets it to 1
+    // If user accessed the page with no product id set, sets it to 1
     if (!id) id = 1;
 
     // Reads json on server
@@ -92,7 +89,7 @@ function onProductLoad() {
             $('#product-image').attr('src', 'img/' + product.id + '.jpeg');
 
             // Gets products in cart
-            let cart = JSON.parse(window.name);
+            let cart = getCart();
 
             // If the product exists in the cart already, sets input quantity
             for (let i = 0; i < cart.length; i++) {
@@ -118,11 +115,11 @@ function onProductLoad() {
 
                     // Creates html tags with review info
                     let html = `<a href=''>
-                                <h6>${user} :</h6>
-                            </a>
-                            <blockquote>
-                                <p>${review}</p>
-                            </blockquote>`;
+                                    <h6>${user} :</h6>
+                                </a>
+                                <blockquote>
+                                    <p>${review}</p>
+                                </blockquote>`;
 
                     // Appends review to div
                     $('#reviews').append(html);
@@ -147,63 +144,91 @@ function onProductLoad() {
 // Executed when cart.html page is ready
 function onCartLoad() {
 
-    // Initialises window.name if it hasn't been set
-    if (!window.name) window.name = '[]';
-
     // Gets products in cart
-    let cart = JSON.parse(window.name);
+    let cart = getCart();
 
-    // If there is any product in the cart
+    // If there are any products in the cart
     if (cart.length > 0) {
 
         // Reads json on server
         $.getJSON(jsonUrl, function (json) {
 
+            // Declares product, html-building, and total cost variables
+            let product, id, name, quantity, price, html, total;
+
+            // Sets total to 0
+            total = 0;
+
             // For each product in cart...
             for (let i = 0; i < cart.length; i++) {
 
                 // Finds product with id
-                let product = json.find(item => item.id == cart[i].id);
+                product = json.find(item => item.id == cart[i].id);
 
-                // Gets product info
-                let id = cart[i].id;
-                let name = product.name;
-                let quantity = cart[i].quantity;
-                let price = (product.price * quantity).toFixed(2);
+                // Gets product info and calculates total
+                id = cart[i].id;
+                name = product.name;
+                quantity = cart[i].quantity;
+                price = (product.price * quantity).toFixed(2);
+                total += parseFloat(price);
 
                 // Creates html tags with product info
-                let html = `<tr>
-                                <td>
-                                    <a href='product.html?id=${id}'>
-                                        <img src='img/${id}.jpeg'>
-                                    </a>
-                                </td>
-                                <td>
-                                    <a href='product.html?id=${id}'>
-                                        <p>${name}</p>
-                                    </a>
-                                </td>
-                                <td class='quantity'>${quantity} bottle(s)</td>
-                                <td class='price'>$ ${price}</td>
-                                <td>
-                                    <a href='product.html?id=${id}'>
-                                        <i class='black-text material-icons'>edit</i>
-                                    </a>
-                                </td>
-                                <td class='p-right'>
-                                    <a href='javascript:removeProduct(${id})'>
-                                        <i class='black-text material-icons'>delete</i>
-                                    </a>
-                                </td>
-                            </tr>`;
+                html = `<tr>
+                            <td>
+                                <a href='product.html?id=${id}'>
+                                    <img src='img/${id}.jpeg'>
+                                </a>
+                            </td>
+                            <td>
+                                <a href='product.html?id=${id}'>
+                                    <p>${name}</p>
+                                 </a>
+                            </td>
+                            <td class='quantity'>${quantity} ${quantity == 1 ? 'bottle' : 'bottles'}</td>
+                            <td class='price'>$ ${price}</td>
+                            <td>
+                                <a href='product.html?id=${id}'>
+                                    <i class='black-text material-icons'>edit</i>
+                                </a>
+                            </td>
+                            <td class='p-right'>
+                                <a href='javascript:removeProduct(${id})'>
+                                    <i class='black-text material-icons'>delete</i>
+                                </a>
+                            </td>
+                        </tr>`;
 
                 // Appends product to table
                 $('tbody').append(html);
 
             }
+
+            // Builds shipping cost row
+            html = `<tr>
+                        <td>
+                            <img src='img/delivery.png'>
+                        </td>
+                        <td>
+                            <p>Shipping Cost</p>    
+                        </td>
+                        <td></td>
+                        <td class='price'>$ 15.00</td>
+                        <td></td>
+                        <td></td>
+                    </tr>`;
+
+            // Appends shipping cost to end of table
+            $('tbody').append(html);
+
+            // Adds shipping cost to total and fixes the number of decimals
+            total = (total + 15).toFixed(2);
+
+            // Sets button name with total price
+            $('button').html(`Buy everything ($${total})`);
+
         });
     }
-    // If there are no products in the cart
+    // If there are no products in the cart, displays message and overrides page elements
     else {
         let html = `<div class='center container m-top'>
                         <h1>Your cart is empty</h1>
@@ -222,32 +247,30 @@ function onCartLoad() {
 function addProduct() {
 
     // Gets JSON from browser storage
-    let cart = JSON.parse(window.name);
+    let cart = getCart();
 
     // Gets product info and creates object
     let id = $('#product-id').val();
     let quantity = $('#quantity').val();
     let product = { "id": id, "quantity": quantity };
 
-    // If the product exists in the cart already, delets the products and refreshes cart variable
+    // If the product exists in the cart already, delets the product and updates cart
     if (cart.some(item => item.id == id)) {
         removeProduct(id);
-        cart = JSON.parse(window.name);
+        cart = getCart();
     }
 
-    // Adds new product to cart
+    // Adds new product to cart and saves cart
     cart[cart.length] = product;
-
-    // Saves cart
-    window.name = JSON.stringify(cart);
+    saveCart(cart);
 
 }
 
-// Removes product from JSON
+// Removes product from cart
 function removeProduct(id) {
 
     // Gets JSON from browser storage
-    let cart = JSON.parse(window.name);
+    let cart = getCart();
 
     // Finds product and delets it
     for (let i = cart.length - 1; i >= 0; i--) {
@@ -257,12 +280,16 @@ function removeProduct(id) {
         }
     }
 
-    // Saves cart
-    window.name = JSON.stringify(cart);
-
-    // Reloads cart
+    // Saves cart and reloads cart
+    saveCart(cart);
     location.reload();
 
+}
+
+// Removes all products from cart
+function removeAll() {
+    localStorage.setItem('cart', '[]');
+    location.reload();
 }
 
 // Gets param from url
@@ -283,4 +310,19 @@ function getParam(name) {
             return value[1];
 
     }
+}
+
+// Gets cart JSON object
+function getCart() {
+    return JSON.parse(localStorage.getItem('cart'));
+}
+
+// Saves cart JSON object
+function saveCart(cart) {
+    localStorage.setItem('cart', JSON.stringify(cart));
+}
+
+// Initialises cart if it hasn't been set
+function initialiseCart() {
+    if (!localStorage.getItem('cart')) localStorage.setItem('cart', '[]');
 }

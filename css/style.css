@@ -15,6 +15,7 @@ blockquote {
 table img {
     margin-left: 2em;
     max-height: 100px;
+    max-width: 100px;
 }
 
 table input {
